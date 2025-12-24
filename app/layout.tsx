@@ -2,16 +2,9 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-// 👇👇👇 加上这一行！告诉 Cloudflare 全站使用 Edge 模式
+// 👇 关键：这一行必须有，而且全文件只能出现一次
 export const runtime = 'edge';
 
-const inter = Inter({ subsets: ["latin"] });
-// ...后面的代码不变
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css"; // 👈 这一行最重要，它负责把“衣服”穿上
-
-// 加载一个好看的英文字体
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -27,7 +20,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {/* 这里就是显示你写的所有页面内容 */}
         {children}
       </body>
     </html>

@@ -1,4 +1,10 @@
-import { getPostBySlug, getPublishedPosts } from '@/lib/airtable';
+import { getPublishedPosts, getPostBySlug } from '@/lib/airtable';
+import { notFound } from 'next/navigation';
+
+// ✅ 加上这一行！确保文章页也是 Edge 模式
+export const runtime = 'edge';
+
+// ... 这里的代码接原来的 generateStaticParams ...
 import { notFound } from 'next/navigation';
 import Markdown from 'react-markdown';
 import Link from 'next/link';
