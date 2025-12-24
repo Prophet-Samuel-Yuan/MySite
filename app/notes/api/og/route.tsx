@@ -4,10 +4,6 @@ import { ImageResponse } from 'next/og';
 export const runtime = 'edge';
 
 export async function GET(request: Request) {
-  // ...后面的代码不变
-}
-
-export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const title = searchParams.get("title") || "notes";
   const emoji = searchParams.get("emoji") || "";

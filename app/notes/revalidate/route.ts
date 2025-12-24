@@ -1,12 +1,10 @@
 import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
-// 👇👇👇 加上这一行！
+// ✅ 这一行必须有，确保边缘计算模式
 export const runtime = 'edge';
 
-export async function GET(request: NextRequest) {
-  // ...后面的代码不变
-}
+// (注意：我删掉了那个没用的 GET 空壳函数)
 
 export async function POST(request: NextRequest) {
   try {
