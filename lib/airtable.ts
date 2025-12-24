@@ -1,85 +1,85 @@
-import Airtable from 'airtable';
+import { notFound } from 'next/navigation';
 
-// 1. 定义数据结构
-export interface Post {
+// 定义笔记的数据结构
+export interface Note {
   id: string;
   title: string;
   slug: string;
   date: string;
   content: string;
-  tags: string[];
-  pinned: boolean;
+  tags?: string[];
+  pinned?: boolean;
 }
 
-// 2. 关键修改：不要在文件最开头初始化 Airtable
-// 改成用这个函数来获取实例，用到时再调用
-const getBase = () => {
-  const token = process.env.AIRTABLE_TOKEN;
-  const baseId = process.env.AIRTABLE_BASE_ID;
+// 检查环境变量 (防止构建时报错)
+const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+const TABLE_NAME = 'Notes'; // ⚠️ 确保你的 Airtable 表名是 "Notes"
 
-  // 如果找不到钥匙，只打印警告，不抛出致命错误
-  if (!token || !baseId) {
-    console.warn("⚠️ Warning: Airtable Environment Variables are missing during build.");
+// 通用的 Fetch 函数 (替代官方 SDK)
+async function fetchAirtable(url: string) {
+  if (!AIRTABLE_TOKEN || !AIRTABLE_BASE_ID) {
+    console.error("Missing Airtable environment variables");
     return null;
   }
 
-  return new Airtable({ apiKey: token }).base(baseId);
-};
-
-// 3. 获取列表
-export async function getPublishedPosts(): Promise<Post[]> {
-  const base = getBase();
-  if (!base) return []; // 🛡️ 如果没连上数据库，返回空列表，保命要紧
-
   try {
-    const records = await base('Posts').select({
-      filterByFormula: "{Status} = 'Published'",
-      sort: [
-        { field: 'Pinned', direction: 'desc' },
-        { field: 'PublishedDate', direction: 'desc' }
-      ]
-    }).all();
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      next: { revalidate: 60 }, // 缓存 60 秒
+    });
 
-    return records.map((record) => ({
-      id: record.id,
-      title: record.get('Title') as string,
-      slug: record.get('Slug') as string,
-      date: record.get('PublishedDate') as string,
-      content: record.get('Content') as string || '',
-      tags: (record.get('Tags') as string[]) || [],
-      pinned: (record.get('Pinned') as boolean) || false,
-    }));
+    if (!res.ok) {
+      throw new Error(`Airtable API Error: ${res.statusText}`);
+    }
+    return await res.json();
   } catch (error) {
-    console.error('获取文章列表失败:', error);
-    return [];
+    console.error("Fetch Airtable failed:", error);
+    return null;
   }
 }
 
-// 4. 获取详情
-export async function getPostBySlug(slug: string): Promise<Post | null> {
-  const base = getBase();
-  if (!base) return null; // 🛡️ 保命
+// 1. 获取所有已发布文章 (用于侧边栏)
+export async function getPublishedPosts(): Promise<Note[]> {
+  // 构造查询 URL：筛选 Published = true，按 Date 降序排列
+  const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${TABLE_NAME}?filterByFormula={Published}&sort%5B0%5D%5Bfield%5D=Date&sort%5B0%5D%5Bdirection%5D=desc`;
+  
+  const data = await fetchAirtable(url);
+  if (!data || !data.records) return [];
 
-  try {
-    const records = await base('Posts').select({
-      filterByFormula: `AND({Status} = 'Published', {Slug} = '${slug}')`,
-      maxRecords: 1
-    }).all();
+  return data.records.map((record: any) => ({
+    id: record.id,
+    title: record.fields.Title || "Untitled",
+    slug: record.fields.Slug || "",
+    date: record.fields.Date || "",
+    content: record.fields.Content || "",
+    tags: record.fields.Tags || [],
+    pinned: record.fields.Pinned || false,
+  }));
+}
 
-    if (records.length === 0) return null;
+// 2. 根据 Slug 获取单篇文章
+export async function getPostBySlug(slug: string): Promise<Note | null> {
+  // 构造查询 URL：筛选 Slug = 目标值
+  const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${TABLE_NAME}?filterByFormula=AND({Published}, {Slug}='${slug}')`;
 
-    const record = records[0];
-    return {
-      id: record.id,
-      title: record.get('Title') as string,
-      slug: record.get('Slug') as string,
-      date: record.get('PublishedDate') as string,
-      content: record.get('Content') as string || '',
-      tags: (record.get('Tags') as string[]) || [],
-      pinned: (record.get('Pinned') as boolean) || false,
-    };
-  } catch (error) {
-    console.error('获取文章详情失败:', error);
+  const data = await fetchAirtable(url);
+  
+  if (!data || !data.records || data.records.length === 0) {
     return null;
   }
+
+  const record = data.records[0];
+  return {
+    id: record.id,
+    title: record.fields.Title || "Untitled",
+    slug: record.fields.Slug || "",
+    date: record.fields.Date || "",
+    content: record.fields.Content || "",
+    tags: record.fields.Tags || [],
+    pinned: record.fields.Pinned || false,
+  };
 }
