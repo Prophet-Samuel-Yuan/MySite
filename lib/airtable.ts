@@ -1,7 +1,6 @@
 import Airtable from 'airtable';
 
-const base = new Airtable({ apiKey: process.env.AIRTABLE_TOKEN }).base(process.env.AIRTABLE_BASE_ID!);
-
+// 1. 定义数据结构
 export interface Post {
   id: string;
   title: string;
@@ -9,16 +8,35 @@ export interface Post {
   date: string;
   content: string;
   tags: string[];
-  pinned: boolean; // 👈 新增：告诉前端这是否是置顶文章
+  pinned: boolean;
 }
 
+// 2. 关键修改：不要在文件最开头初始化 Airtable
+// 改成用这个函数来获取实例，用到时再调用
+const getBase = () => {
+  const token = process.env.AIRTABLE_TOKEN;
+  const baseId = process.env.AIRTABLE_BASE_ID;
+
+  // 如果找不到钥匙，只打印警告，不抛出致命错误
+  if (!token || !baseId) {
+    console.warn("⚠️ Warning: Airtable Environment Variables are missing during build.");
+    return null;
+  }
+
+  return new Airtable({ apiKey: token }).base(baseId);
+};
+
+// 3. 获取列表
 export async function getPublishedPosts(): Promise<Post[]> {
+  const base = getBase();
+  if (!base) return []; // 🛡️ 如果没连上数据库，返回空列表，保命要紧
+
   try {
     const records = await base('Posts').select({
       filterByFormula: "{Status} = 'Published'",
       sort: [
-        { field: 'Pinned', direction: 'desc' }, // 👈 第一优先级：勾选了 Pinned 的排前面 (true > false)
-        { field: 'PublishedDate', direction: 'desc' } // 第二优先级：按时间倒序
+        { field: 'Pinned', direction: 'desc' },
+        { field: 'PublishedDate', direction: 'desc' }
       ]
     }).all();
 
@@ -29,7 +47,7 @@ export async function getPublishedPosts(): Promise<Post[]> {
       date: record.get('PublishedDate') as string,
       content: record.get('Content') as string || '',
       tags: (record.get('Tags') as string[]) || [],
-      pinned: (record.get('Pinned') as boolean) || false, // 👈 获取 Airtable 的勾选状态
+      pinned: (record.get('Pinned') as boolean) || false,
     }));
   } catch (error) {
     console.error('获取文章列表失败:', error);
@@ -37,7 +55,11 @@ export async function getPublishedPosts(): Promise<Post[]> {
   }
 }
 
+// 4. 获取详情
 export async function getPostBySlug(slug: string): Promise<Post | null> {
+  const base = getBase();
+  if (!base) return null; // 🛡️ 保命
+
   try {
     const records = await base('Posts').select({
       filterByFormula: `AND({Status} = 'Published', {Slug} = '${slug}')`,
