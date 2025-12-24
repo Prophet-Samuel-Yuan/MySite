@@ -2,11 +2,11 @@
 
 import { createContext } from "react";
 
-// 补齐缺少的“勺子”
 export const SessionNotesContext = createContext({
   notes: [],
   isLoading: false,
-  refreshSessionNotes: () => {}, // 👈 加了这一行空函数，骗过编译器
+  // 👇 关键修改：加了 async，把它伪装成一个异步 Promise，骗过编译器
+  refreshSessionNotes: async () => {},
 });
 
 export default function SessionNotes() {
