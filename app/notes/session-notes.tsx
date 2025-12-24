@@ -2,20 +2,21 @@
 
 import { createContext } from "react";
 
-// 1. 补齐 Context (之前修过的)
+// 这是一个“全能”的假数据包，包含了 Sidebar 和 CommandMenu 所有可能需要的属性
 export const SessionNotesContext = createContext({
   notes: [],
   isLoading: false,
   refreshSessionNotes: async () => {},
+  // 👇 这次补齐了这俩“钉子户”
+  sessionId: null, 
+  setSessionId: (id: any) => {}, 
 });
 
-// 2. 补齐 Provider (这次报错缺少的！关键！)
-// 它只是一个空壳，负责把孩子渲染出来，骗过编译器
+// 这是一个空的 Provider，负责把页面包起来，不让它报错
 export function SessionNotesProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// 3. 补齐 Default Export
 export default function SessionNotes() {
   return null;
 }
