@@ -8,13 +8,12 @@ import { Search, Star, PenSquare } from "lucide-react";
 import { SessionNotesContext } from "@/app/notes/session-notes";
 import { useMobileDetect } from "./mobile-detector";
 
-export default function Sidebar() {
+export default function MacSidebar() {
   const { notes, isLoading } = useContext(SessionNotesContext);
   const pathname = usePathname();
   const { isMobile, isMobileMenuOpen, setIsMobileMenuOpen } = useMobileDetect();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // 搜索过滤逻辑
   const filteredNotes = notes.filter((note: any) =>
     note.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -26,27 +25,23 @@ export default function Sidebar() {
         !isMobileMenuOpen && "-translate-x-full"
       )}
     >
-      {/* === 顶部：Mac 窗口按钮 & 草稿入口 === */}
+      {/* 🔴🟡🟢 Mac 按钮区域 */}
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
-        {/* Mac 风格三色按钮 (装饰) */}
         <div className="flex space-x-2 group opacity-60 hover:opacity-100 transition-opacity">
           <div className="h-3 w-3 rounded-full bg-[#FF5F57] border border-[#E0443E]/50"></div>
           <div className="h-3 w-3 rounded-full bg-[#FEBC2E] border border-[#D89E24]/50"></div>
           <div className="h-3 w-3 rounded-full bg-[#28C840] border border-[#1AAB29]/50"></div>
         </div>
-
-        {/* 新建草稿按钮 (链接到 /notes/new) */}
         <Link
           href="/notes/new"
           className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
           onClick={() => isMobile && setIsMobileMenuOpen(false)}
-          title="New Local Draft"
         >
           <PenSquare size={20} />
         </Link>
       </div>
 
-      {/* === 搜索栏 === */}
+      {/* 搜索框 */}
       <div className="px-4 pb-2">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
@@ -60,7 +55,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* === 笔记列表 === */}
+      {/* 笔记列表 */}
       <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
         {isLoading ? (
           <div className="p-4 text-center text-xs text-zinc-400">Loading...</div>
@@ -69,53 +64,29 @@ export default function Sidebar() {
         ) : (
           filteredNotes.map((note: any) => {
             const isSelected = pathname === `/notes/${note.slug}`;
-            
             return (
               <Link
                 key={note.id}
                 href={`/notes/${note.slug}`}
                 className={clsx(
                   "group flex flex-col gap-0.5 rounded-lg p-3 transition-colors",
-                  // Apple Notes 风格选中高亮
                   isSelected
                     ? "bg-[#FBEBA6] dark:bg-[#D1A636]"
                     : "hover:bg-[#E3E3E8] dark:hover:bg-[#2c2c2e]"
                 )}
-                onClick={() => {
-                  if (isMobile) setIsMobileMenuOpen(false);
-                }}
+                onClick={() => isMobile && setIsMobileMenuOpen(false)}
               >
                 <div className="flex items-center justify-between">
-                  <span
-                    className={clsx(
-                      "truncate text-[15px] font-bold leading-tight",
-                      isSelected ? "text-black" : "text-black dark:text-white"
-                    )}
-                  >
+                  <span className={clsx("truncate text-[15px] font-bold leading-tight", isSelected ? "text-black" : "text-black dark:text-white")}>
                     {note.title}
                   </span>
                 </div>
-
                 <div className="flex items-center gap-2 text-[14px]">
-                  <span
-                    className={clsx(
-                      "flex-shrink-0",
-                      isSelected ? "text-zinc-800" : "text-zinc-500 dark:text-zinc-400"
-                    )}
-                  >
-                    {/* 简单的日期格式化 */}
+                  <span className={clsx("flex-shrink-0", isSelected ? "text-zinc-800" : "text-zinc-500 dark:text-zinc-400")}>
                     {note.date ? note.date.substring(0, 10) : ""}
                   </span>
-                  
-                  <span
-                    className={clsx(
-                      "truncate",
-                      isSelected ? "text-zinc-700" : "text-zinc-400 dark:text-zinc-500"
-                    )}
-                  >
-                    {note.pinned && (
-                      <Star className="mr-1 inline-block h-3 w-3 fill-yellow-500 text-yellow-500" />
-                    )}
+                  <span className={clsx("truncate", isSelected ? "text-zinc-700" : "text-zinc-400 dark:text-zinc-500")}>
+                    {note.pinned && <Star className="mr-1 inline-block h-3 w-3 fill-yellow-500 text-yellow-500" />}
                     No additional text
                   </span>
                 </div>
