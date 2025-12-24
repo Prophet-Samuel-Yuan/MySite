@@ -22,7 +22,7 @@ export default async function NotePage({ params }: { params: { slug: string } })
   }
 
   return (
-    <article className="prose prose-neutral max-w-none">
+    <article className="prose prose-zinc max-w-2xl mx-auto pt-10 px-6 dark:prose-invert prose-headings:font-bold prose-h1:text-3xl prose-p:text-[17px] prose-p:leading-relaxed prose-p:text-zinc-800 dark:prose-p:text-zinc-200">
       <h1 className="mb-4 text-3xl font-bold">{post.title}</h1>
       <div className="mb-8 text-sm text-neutral-500">
         <time>{post.date}</time>
