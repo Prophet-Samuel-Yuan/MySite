@@ -1,37 +1,21 @@
 import { getPublishedPosts } from '@/lib/airtable';
 
-// 👇👇👇 加上这一行！
+// ✅ 这一行必须有
 export const runtime = 'edge';
 
 export default async function sitemap() {
-  // ...后面的代码不变
-}
-import { createClient } from '@/utils/supabase/server'
-import { MetadataRoute } from 'next'
+  const posts = await getPublishedPosts();
+  
+  const notes = posts.map((post) => ({
+    url: `https://你的域名/notes/${post.slug}`, // 这里不用太纠结域名，Cloudflare 会自动处理相对路径
+    lastModified: new Date(post.date),
+  }));
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const supabase = createClient();
-
-    const { data: notes } = await supabase
-        .from('notes')
-        .select('slug, created_at')
-        .eq('public', true)
-        .order('created_at', { ascending: false });
-
-    const notesUrls = notes?.map((note) => ({
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/notes/${note.slug}`,
-        lastModified: new Date(note.created_at),
-    })) || [];
-
-    return [
-        {
-            url: process.env.NEXT_PUBLIC_SITE_URL!,
-            lastModified: new Date(),
-        },
-        {
-            url: `${process.env.NEXT_PUBLIC_SITE_URL}/notes`,
-            lastModified: new Date(),
-        },
-        ...notesUrls
-    ]
+  return [
+    {
+      url: 'https://你的域名',
+      lastModified: new Date(),
+    },
+    ...notes,
+  ];
 }
