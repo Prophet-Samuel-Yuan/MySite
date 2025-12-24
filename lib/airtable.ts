@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation';
 
-// 定义笔记的数据结构
 export interface Note {
   id: string;
   title: string;
@@ -11,15 +10,15 @@ export interface Note {
   pinned?: boolean;
 }
 
-// 检查环境变量 (防止构建时报错)
+// ⚠️ 确保这些变量名和你 Cloudflare 后台设置的一模一样
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-const TABLE_NAME = 'Notes'; // ⚠️ 确保你的 Airtable 表名是 "Notes"
+const TABLE_NAME = 'Notes'; 
 
-// 通用的 Fetch 函数 (替代官方 SDK)
 async function fetchAirtable(url: string) {
+  // 如果没有 Token，直接报错
   if (!AIRTABLE_TOKEN || !AIRTABLE_BASE_ID) {
-    console.error("Missing Airtable environment variables");
+    console.error("❌ 错误: 缺少 Airtable 环境变量 (AIRTABLE_TOKEN 或 AIRTABLE_BASE_ID)");
     return null;
   }
 
@@ -29,22 +28,22 @@ async function fetchAirtable(url: string) {
         Authorization: `Bearer ${AIRTABLE_TOKEN}`,
         "Content-Type": "application/json",
       },
-      next: { revalidate: 60 }, // 缓存 60 秒
+      next: { revalidate: 0 }, // 0 表示不做缓存，每次都取最新的，方便调试
     });
 
     if (!res.ok) {
-      throw new Error(`Airtable API Error: ${res.statusText}`);
+      console.error(`❌ Airtable API 报错: ${res.status} ${res.statusText}`);
+      return null;
     }
     return await res.json();
   } catch (error) {
-    console.error("Fetch Airtable failed:", error);
+    console.error("❌ 网络请求失败:", error);
     return null;
   }
 }
 
-// 1. 获取所有已发布文章 (用于侧边栏)
 export async function getPublishedPosts(): Promise<Note[]> {
-  // 构造查询 URL：筛选 Published = true，按 Date 降序排列
+  // 这里的查询条件是：筛选 Published 勾选的，按日期降序
   const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${TABLE_NAME}?filterByFormula={Published}&sort%5B0%5D%5Bfield%5D=Date&sort%5B0%5D%5Bdirection%5D=desc`;
   
   const data = await fetchAirtable(url);
@@ -61,9 +60,7 @@ export async function getPublishedPosts(): Promise<Note[]> {
   }));
 }
 
-// 2. 根据 Slug 获取单篇文章
 export async function getPostBySlug(slug: string): Promise<Note | null> {
-  // 构造查询 URL：筛选 Slug = 目标值
   const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${TABLE_NAME}?filterByFormula=AND({Published}, {Slug}='${slug}')`;
 
   const data = await fetchAirtable(url);
