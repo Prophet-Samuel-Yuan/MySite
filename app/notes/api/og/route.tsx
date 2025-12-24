@@ -1,3 +1,11 @@
+import { ImageResponse } from 'next/og';
+
+// 👇👇👇 加上这一行！
+export const runtime = 'edge';
+
+export async function GET(request: Request) {
+  // ...后面的代码不变
+}
 import { ImageResponse } from "next/og";
 
 export async function GET(request: Request) {

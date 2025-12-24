@@ -1,5 +1,14 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import "./globals.css";
+
+// 👇👇👇 加上这一行！告诉 Cloudflare 全站使用 Edge 模式
+export const runtime = 'edge';
+
+const inter = Inter({ subsets: ["latin"] });
+// ...后面的代码不变
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css"; // 👈 这一行最重要，它负责把“衣服”穿上
 
 // 加载一个好看的英文字体

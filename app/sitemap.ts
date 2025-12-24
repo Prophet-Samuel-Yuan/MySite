@@ -1,3 +1,11 @@
+import { getPublishedPosts } from '@/lib/airtable';
+
+// 👇👇👇 加上这一行！
+export const runtime = 'edge';
+
+export default async function sitemap() {
+  // ...后面的代码不变
+}
 import { createClient } from '@/utils/supabase/server'
 import { MetadataRoute } from 'next'
 
