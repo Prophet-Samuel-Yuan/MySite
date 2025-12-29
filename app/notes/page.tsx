@@ -18,30 +18,42 @@ export default async function Home() {
 
   // 3. 渲染列表
   return (
-    <main className="max-w-2xl mx-auto py-12 px-6">
-      <header className="mb-16">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Notes</h1>
-        <p className="text-gray-500">Thinking out loud.</p>
+    <main className="max-w-4xl mx-auto py-12 px-6">
+      <header className="mb-12">
+        <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-gray-100 mb-2">
+          Notes
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400">Thinking out loud.</p>
       </header>
 
-      <div className="flex flex-col gap-8">
+      <div className="grid gap-3">
         {posts.map((post) => (
           <Link 
             key={post.id} 
-            href={`/notes/${post.slug}`} // 注意：这里指向 /notes/slug
+            href={`/notes/${post.slug}`}
             className="group block"
           >
-            <article className="flex flex-col space-y-1">
+            <article className="rounded-xl bg-white/50 p-5 hover:bg-gray-50 transition-all duration-150 border border-gray-100 dark:border-gray-800 dark:bg-gray-900/50 dark:hover:bg-gray-800/50">
               <div className="flex items-baseline justify-between gap-4">
-                <h2 className="text-lg font-medium text-gray-900 group-hover:underline underline-offset-4 decoration-gray-300 transition-all">
+                <h2 className="text-[17px] font-semibold text-gray-900 dark:text-gray-100 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
                   {post.title}
                 </h2>
-                <time className="text-sm text-gray-400 font-mono shrink-0">
+                <time className="text-xs text-gray-400 font-medium shrink-0">
                   {post.date}
                 </time>
               </div>
-              {/* 如果你想显示标签，就把下面这行注释取消 */}
-              {/* <div className="text-xs text-gray-400">{post.tags.join(', ')}</div> */}
+              {post.tags && post.tags.length > 0 && (
+                <div className="mt-2 flex gap-2">
+                  {post.tags.map((tag: string, index: number) => (
+                    <span 
+                      key={index}
+                      className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </article>
           </Link>
         ))}
